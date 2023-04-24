@@ -13,49 +13,50 @@ def lorenz(t, x):
     Dx3 = x1*y - b*x3
     return [Dx1, Dx2, Dx3]
 
-x0 = [0.1, -0.1, 0.05]  # Question 1: What initial conditions are expected?
-T = 100
-t_span = [0, T]
+x0 = np.array([0.1, -0.1, 0.05])  # Question 1: What initial conditions are expected?
+end_time = 100
+t_span = [0, end_time]
+T = len(t_span)  # TODO: This yields the wrong value
 
 sol = solve_ivp(lorenz, t_span, x0)
 #print(sol)
 #print(sol.y[1])
-y = sol.y[1]
+y = sol.y
 
 # ----------- 2) --------------
 class Reservoir:
-    def __init__(self, N, reservoir_size, w_std, tao, y):
+    def __init__(self, n, N, w_std, gamma, y):
+        self.n = n
         self.N = N
-        self.reservoir_size = reservoir_size
         self.w_std = w_std
-        self.tao = tao
+        self.gamma = gamma
         self.y = np.array(y)
 
-        self.x = self.y[0]
-        self.W = (np.random.rand(reservoir_size, reservoir_size) - 0.5) * w_std
-        self.w_in = (np.random.rand(reservoir_size, 3) - 0.5) * w_std
-        self.w_out = (np.random.rand(3, reservoir_size) - 0.5) * w_std
-        self.r = np.zeros(reservoir_size)
+        self.x = np.hstack((x0.reshape((3, 1)), self.y))
+        self.W = (np.random.rand(N, N) - 0.5) * w_std
+        self.w_in = (np.random.rand(N, 3) - 0.5) * w_std
+        self.w_out = (np.random.rand(3, N) - 0.5) * w_std
+        self.r = np.zeros(N)
+        self.R = np.zeros((N, T))
 
     def g(self, vec):
         return vec
 
     def train(self, num_generations):
-        for gen in range(0,num_generations):
-            # Reset something
-            for t in range(1,T):
-                self.r = self.g(np.dot(self.W,self.r) + np.dot(self.w_in,self.x))
-                O = np.dot(self.w_out,self.r)
-                H = (1/2)*(np.dot((self.y[t]-O),(self.y[t]-O))) # TODO: Sum over time
+        # Fill out R with reservoir values over time
+        for t in range(T):
+            reservoir_field = np.dot(self.W, self.r)
+            input_field = np.dot(self.w_in, self.x[:, t])
+            self.r = self.g(reservoir_field + input_field)
+            self.R[:, t] = self.r
+        a = 0
 
-                # Update to next input data
-                self.x = self.y[t]
+
 
         
 
 # Outside reservoir class
 reservoir_size = 50  # Question 2: Did we get any advice on the size of the reservoir?
-num_generations = 100
 w_std = 0.1
 tao = 3
 
