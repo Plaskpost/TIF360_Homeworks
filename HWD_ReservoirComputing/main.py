@@ -16,40 +16,43 @@ def lorenz(t, x):
 x0 = np.array([0.1, -0.1, 0.05])  # Question 1: What initial conditions are expected?
 end_time = 100
 t_span = [0, end_time]
-T = len(t_span)  # TODO: This yields the wrong value
 
 sol = solve_ivp(lorenz, t_span, x0)
 #print(sol)
 #print(sol.y[1])
-y = sol.y
+Y = sol.y
+T = np.shape(Y)[1]
 
 # ----------- 2) --------------
 class Reservoir:
-    def __init__(self, n, N, w_std, gamma, y):
+    def __init__(self, n, N, sigma, gamma, Y):
         self.n = n
         self.N = N
-        self.w_std = w_std
+        self.sigma = sigma
         self.gamma = gamma
-        self.y = np.array(y)
+        self.Y = np.array(Y)
 
-        self.x = np.hstack((x0.reshape((3, 1)), self.y))
-        self.W = (np.random.rand(N, N) - 0.5) * w_std
-        self.w_in = (np.random.rand(N, 3) - 0.5) * w_std
-        self.w_out = (np.random.rand(3, N) - 0.5) * w_std
+        self.x = np.hstack((x0.reshape((3, 1)), self.Y))
+        self.W = (np.random.rand(N, N) - 0.5) * sigma
+        self.w_in = (np.random.rand(N, 3) - 0.5) * sigma
+        self.w_out = (np.random.rand(3, N) - 0.5) * sigma
         self.r = np.zeros(N)
-        self.R = np.zeros((N, T))
 
     def g(self, vec):
         return vec
 
-    def train(self, num_generations):
+    def train(self):
+        R = np.zeros((self.N, T))
+
         # Fill out R with reservoir values over time
         for t in range(T):
             reservoir_field = np.dot(self.W, self.r)
             input_field = np.dot(self.w_in, self.x[:, t])
             self.r = self.g(reservoir_field + input_field)
-            self.R[:, t] = self.r
-        a = 0
+            R[:, t] = self.r
+
+        # Set the w_out according to Bernhard's equation
+        self.w_out = self.Y * (R * R.transpose() + )  # : Finish this equation
 
 
 
@@ -57,9 +60,9 @@ class Reservoir:
 
 # Outside reservoir class
 reservoir_size = 50  # Question 2: Did we get any advice on the size of the reservoir?
-w_std = 0.1
+sigma = 0.1
 tao = 3
 
-reservoir = Reservoir(3, reservoir_size, w_std, tao, y)
+reservoir = Reservoir(3, reservoir_size, sigma, tao, y)
 reservoir.train(4)
 
