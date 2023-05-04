@@ -10,7 +10,7 @@ import h5py
 # This file provides the skeleton structure for the classes TQAgent and TDQNAgent to be completed by you, the student.
 # Locations starting with # TO BE COMPLETED BY STUDENT indicates missing code that should be written by you.
 
-task = "1d"
+task = "1c"
 
 class TQAgent:
     # Agent for learning to play tetris using Q-learning
@@ -118,7 +118,8 @@ class TQAgent:
             if self.episode % 1000 == 0:
                 saveEpisodes = [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000]
                 if self.episode in saveEpisodes:
-                    self.plot_data.append([self.episode, self.reward_tots[self.episode-1]])
+                    a = 0 # I don't know what should be here, but I'm pretty sure the result of every episode should be saved.
+            self.plot_data.append([self.episode-1, self.reward_tots[self.episode-1]])
 
             if self.episode >= self.episode_count:
                 Q_name = "QTables/Q_" + str(task)
@@ -136,12 +137,13 @@ class TQAgent:
             # Select and execute action (move the tile to the desired column and orientation)
             self.fn_select_action()
             # Here you should write line(s) to copy the old state into the variable 'old_state' which is later passed to fn_reinforce()
-            old_state = self.state  # ?
+            old_state = self.state
 
             # Drop the tile on the game board
             reward = self.gameboard.fn_drop()
             # Here you should write line(s) to add the current reward to the total reward for the current episode, so you can save it to disk later
-            self.reward_tots[self.episode] = reward
+            self.reward_tots[self.episode] += reward
+
 
             # Read the new state
             self.fn_read_state()
