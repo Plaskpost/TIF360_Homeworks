@@ -13,7 +13,7 @@ def lorenz(t, x):
     Dx3 = x1*x2 - b*x3
     return [Dx1, Dx2, Dx3]
 
-x0 = np.array([1.0, 1.0, 1.0])  # Question 1: What initial conditions are expected?
+x0 = np.array([1.0, 1.0, 1.0])
 end_time = 100
 t_span = [0, end_time]
 
@@ -112,14 +112,11 @@ for i in range(data_points):
     result2 = reservoir2.predict(x0)
     times_to_divergence[1, i] = time_to_divergence(result2, divergence_limit)
 
-print(times_to_divergence)
 plt.plot(singular_values, times_to_divergence[0,:], label="3 dimensional")
 plt.plot(singular_values, times_to_divergence[1,:], label="1 dimensional")
 plt.title("Time to divergence over maximal singular value.")
 plt.legend()
 plt.show()
-# - Evaluate their prediction performances over a range of gamma.
-# - Evaluate upper and lower gamma for both reservoirs.
-# - Discuss differences and why they appear.
+
 
 
