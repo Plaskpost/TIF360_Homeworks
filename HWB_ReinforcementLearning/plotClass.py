@@ -6,6 +6,7 @@ import csv
 
 
 plot_data = []
+
 results_to_plot = ["1a", "1b", "1c"]
 
 for i in range(len(results_to_plot)):
@@ -32,5 +33,5 @@ for i in range(len(results_to_plot)):
     plt.legend()
     plt.xlabel('Episode')
     plt.ylabel('Total reward')
-    plt.title('Reward development task' + results_to_plot[i])
+    plt.title('Reward development task ' + results_to_plot[i])
     plt.show()

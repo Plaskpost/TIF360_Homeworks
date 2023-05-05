@@ -17,9 +17,10 @@ x0 = np.array([1.0, 1.0, 1.0])
 end_time = 100
 t_span = [0, end_time]
 
-sol = solve_ivp(lorenz, t_span, x0)
+sol = solve_ivp(lorenz, t_span, x0, max_step=0.01)
 Y = sol.y
 T = np.shape(Y)[1]
+print(T)
 
 # ----------- 2) --------------
 class Reservoir:
@@ -29,7 +30,6 @@ class Reservoir:
         self.sigma = sigma
         self.Y = np.array(Y)
 
-        self.x = np.hstack((x0, self.Y))
         self.W = (np.random.rand(N, N) - 0.5) * sigma
         S = np.linalg.svd(self.W, compute_uv=False)
         self.W = self.W / max(S)
@@ -44,11 +44,11 @@ class Reservoir:
         r = np.zeros(self.N)
 
         # Fill out R with reservoir values over time
-        for t in range(T):
+        for t in range(T-1):
             reservoir_field = np.dot(self.W, r)
-            input_field = np.dot(self.w_in, self.x[:, t])
+            input_field = np.dot(self.w_in, self.Y[:, t])
             r = self.g(reservoir_field + input_field)
-            R[:, t] = r
+            R[:, t+1] = r
 
         # Set the w_out according to Bernhard's equation
         self.w_out = np.dot(np.dot(self.Y, R.transpose()), np.linalg.inv(np.dot(R, R.transpose()) + (gamma/2)*np.identity(self.N)))
@@ -57,12 +57,13 @@ class Reservoir:
         x = x0
         r = np.zeros(self.N)
         y = np.zeros((self.n, T))
-        for t in range(T):
+        y[:, 0] = x0
+        for t in range(T-1):
             reservoir_field = np.dot(self.W, r)
             input_field = np.dot(self.w_in, x)
-            r = self.g(reservoir_field + input_field.reshape(self.N))
-            y[:, t] = np.dot(self.w_out, r)
-            x = y[:, t]
+            r = self.g(reservoir_field + input_field.reshape(self.N))  # Updated to r(t+1)
+            y[:, t+1] = np.dot(self.w_out, r)
+            x = y[:, t+1]
 
         return y
 
@@ -70,7 +71,7 @@ class Reservoir:
 # Outside reservoir class
 reservoir_size = 1000
 sigma = 0.2
-gamma = 0.9
+gamma = 0.6
 
 reservoir2 = Reservoir(n=3, N=reservoir_size, x0=x0.reshape((3, 1)), Y=Y, sigma=sigma)
 reservoir2.train(gamma)
@@ -111,6 +112,7 @@ for i in range(data_points):
     reservoir3.train(gamma)
     result2 = reservoir2.predict(x0)
     times_to_divergence[1, i] = time_to_divergence(result2, divergence_limit)
+    print("Singular points computed: ", (i+1), "/", data_points)
 
 plt.plot(singular_values, times_to_divergence[0,:], label="3 dimensional")
 plt.plot(singular_values, times_to_divergence[1,:], label="1 dimensional")
